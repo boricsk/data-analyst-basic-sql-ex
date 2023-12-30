@@ -215,3 +215,153 @@ adatbázisban található utolsó rendelés napján).
 SELECT *
 FROM Orders as o
 WHERE o.OrderDate = (SELECT max(Orders.OrderDate) FROM Orders)
+
+/*
+Kérdezzük le egy ProductModelID listát azokból a termékekből (Product), 
+amelybekből volt értékesítés a rendszerben. Mutassuk ki, hogy az egyes 
+ProductModelID csoportokban hány termék van (Products, amelyből volt 
+értékesítés), de csak a legalább 10 terméket tartalmazó csoportokat 
+jelenítsük meg, növekvő sorrendben.
+*/
+
+select p.ProductModelID, Count(p.ProductModelID) as products
+from Product as p
+where p. ProductID in (
+    select od.ProductID from OrderDetail as od
+)
+GROUP BY p.ProductModelID
+HAVING Count(p.ProductModelID) >= 10
+ORDER BY 1
+
+--Ellenőrzés
+select p.productModelID, count(distinct od.ProductID) as "Number of orders"
+from Product as p
+JOIN OrderDetail as od on od.productID = p.productID
+WHERE ProductModelID = 8
+GROUP BY p.ProductModelID
+
+/*
+Az előző lekérdezést egészítsük ki a következő lekérdezés felhasználásával. 
+Ez a lekérdezés egy listát ad vissza a ProductModel nevekről.
+A lista segítségével a ProductModelID mellé tegyük oda a ProductModelName–t is. 
+Ha nincs, akkor jelenítsük meg az Other szót asz oszlopban.
+*/
+
+select *
+from (
+values
+(1,'Classic Vest'),
+(2,'Cycling Cap'),
+(3,'Full-Finger Gloves'),
+(4,'Half-Finger Gloves'),
+(5,'HL Mountain Frame'),
+(6,'HL Road Frame'),
+(7,'HL Touring Frame'),
+(8,'LL Mountain Frame'),
+(9,'LL Road Frame'),
+(10,'LL Touring Frame'),
+(11,'Long-Sleeve Logo Jersey'),
+(12,'Men''s Bib-Shorts'),
+(13,'Men''s Sports Shorts'),
+(14,'ML Mountain Frame'),
+(15,'ML Mountain Frame-W'),
+(16,'ML Road Frame'),
+(17,'ML Road Frame-W'),
+(18,'Mountain Bike Socks'),
+(19,'Mountain-100'),
+(20,'Mountain-200'),
+(21,'Mountain-300'),
+(22,'Mountain-400-W'),
+(23,'Mountain-500'),
+(24,'Racing Socks'),
+(25,'Road-150'),
+(26,'Road-250'),
+(27,'Road-350-W'),
+(28,'Road-450'),
+(29,'Road-550-W'),
+(30,'Road-650')) list (ProductModelID,ProductModelName)
+
+
+select p.ProductModelID, 
+    isnull(pList.ProductModelName, 'Other') as ProductName, 
+    Count(p.ProductModelID) as products
+from Product as p
+left join (
+    select *
+    from (
+    values
+        (1,'Classic Vest'), (2,'Cycling Cap'), (3,'Full-Finger Gloves'),
+        (4,'Half-Finger Gloves'), (5,'HL Mountain Frame'), (6,'HL Road Frame'),
+        (7,'HL Touring Frame'), (8,'LL Mountain Frame'), (9,'LL Road Frame'),
+        (10,'LL Touring Frame'), (11,'Long-Sleeve Logo Jersey'), (12,'Men''s Bib-Shorts'),
+        (13,'Men''s Sports Shorts'), (14,'ML Mountain Frame'), (15,'ML Mountain Frame-W'),
+        (16,'ML Road Frame'),(17,'ML Road Frame-W'), (18,'Mountain Bike Socks'),
+        (19,'Mountain-100'), (20,'Mountain-200'), (21,'Mountain-300'),
+        (22,'Mountain-400-W'), (23,'Mountain-500'), (24,'Racing Socks'),
+        (25,'Road-150'), (26,'Road-250'), (27,'Road-350-W'),
+        (28,'Road-450'), (29,'Road-550-W'), (30,'Road-650')) 
+        list (ProductModelID,ProductModelName)
+) as pList on pList.ProductModelID = p.ProductModelID and p.ProductID in (select od.ProductID from OrderDetail as od )
+--ez a megoldás lassú
+GROUP BY p.ProductModelID, pList.ProductModelName
+HAVING Count(p.ProductModelID) >= 10
+ORDER BY 1
+
+select p.ProductModelID, 
+    isnull(pList.ProductModelName, 'Other') as ProductName, 
+    Count(p.ProductModelID) as products
+from Product as p
+left join (
+    select *
+    from (
+    values
+        (1,'Classic Vest'), (2,'Cycling Cap'), (3,'Full-Finger Gloves'),
+        (4,'Half-Finger Gloves'), (5,'HL Mountain Frame'), (6,'HL Road Frame'),
+        (7,'HL Touring Frame'), (8,'LL Mountain Frame'), (9,'LL Road Frame'),
+        (10,'LL Touring Frame'), (11,'Long-Sleeve Logo Jersey'), (12,'Men''s Bib-Shorts'),
+        (13,'Men''s Sports Shorts'), (14,'ML Mountain Frame'), (15,'ML Mountain Frame-W'),
+        (16,'ML Road Frame'),(17,'ML Road Frame-W'), (18,'Mountain Bike Socks'),
+        (19,'Mountain-100'), (20,'Mountain-200'), (21,'Mountain-300'),
+        (22,'Mountain-400-W'), (23,'Mountain-500'), (24,'Racing Socks'),
+        (25,'Road-150'), (26,'Road-250'), (27,'Road-350-W'),
+        (28,'Road-450'), (29,'Road-550-W'), (30,'Road-650')) 
+        list (ProductModelID,ProductModelName)
+) as pList on pList.ProductModelID = p.ProductModelID
+where p.ProductID in (select od.ProductID from OrderDetail as od )
+GROUP BY p.ProductModelID, pList.ProductModelName
+HAVING Count(p.ProductModelID) >= 10
+ORDER BY 1
+
+/*
+Alakítsuk át az előző lekérdezést úgy, hogy az összes Product model-
+t mutassa, ami a korábban megadott listában volt, azokat is, amely
+ből nincs értékesítés és azokat is, amelyek alá nem tartozik 
+legalább 10 termék (ott zéró jelenjen meg a Products oszlopban).
+*/
+
+select 
+    p.ProductModelID, 
+    --Count(distinct p.ProductID) as Prod,
+    iif(Count(distinct p.ProductID) < 10, 0,Count(distinct p.ProductID))  as products,
+    isnull(pList.ProductModelName, 'Other') as ProductName
+from Product as p
+left join (
+    select *
+    from (
+    values
+        (1,'Classic Vest'), (2,'Cycling Cap'), (3,'Full-Finger Gloves'),
+        (4,'Half-Finger Gloves'), (5,'HL Mountain Frame'), (6,'HL Road Frame'),
+        (7,'HL Touring Frame'), (8,'LL Mountain Frame'), (9,'LL Road Frame'),
+        (10,'LL Touring Frame'), (11,'Long-Sleeve Logo Jersey'), (12,'Men''s Bib-Shorts'),
+        (13,'Men''s Sports Shorts'), (14,'ML Mountain Frame'), (15,'ML Mountain Frame-W'),
+        (16,'ML Road Frame'),(17,'ML Road Frame-W'), (18,'Mountain Bike Socks'),
+        (19,'Mountain-100'), (20,'Mountain-200'), (21,'Mountain-300'),
+        (22,'Mountain-400-W'), (23,'Mountain-500'), (24,'Racing Socks'),
+        (25,'Road-150'), (26,'Road-250'), (27,'Road-350-W'),
+        (28,'Road-450'), (29,'Road-550-W'), (30,'Road-650')) 
+        list (ProductModelID,ProductModelName)
+) as pList on pList.ProductModelID = p.ProductModelID
+where p.ProductID in (select od.ProductID from OrderDetail as od )
+GROUP BY p.ProductModelID, pList.ProductModelName
+--HAVING Count(distinct p.ProductID) >= 10
+ORDER BY 1
