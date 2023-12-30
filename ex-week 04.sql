@@ -365,3 +365,35 @@ where p.ProductID in (select od.ProductID from OrderDetail as od )
 GROUP BY p.ProductModelID, pList.ProductModelName
 --HAVING Count(distinct p.ProductID) >= 10
 ORDER BY 1
+
+--Megoldás
+select 
+    isnull(pList.ProductModelID, p.ProductModelID) as ProductModellID, 
+    --ha nincs az ID a listában, akkor a Productból hozom le
+    isnull(pList.ProductModelName, 'Other') as ProductModellName,
+    isnull(p.Products, 0) as Products
+from (
+    select ProductModelID, count(Product.ProductID) as Products from Product
+    where Product.ProductID in (select OrderDetail.ProductID from OrderDetail)
+    GROUP BY Product.ProductModelID
+    HAVING count(Product.ProductID) >= 10
+) as p
+full join (
+    select *
+    from (
+    values
+        (1,'Classic Vest'), (2,'Cycling Cap'), (3,'Full-Finger Gloves'),
+        (4,'Half-Finger Gloves'), (5,'HL Mountain Frame'), (6,'HL Road Frame'),
+        (7,'HL Touring Frame'), (8,'LL Mountain Frame'), (9,'LL Road Frame'),
+        (10,'LL Touring Frame'), (11,'Long-Sleeve Logo Jersey'), (12,'Men''s Bib-Shorts'),
+        (13,'Men''s Sports Shorts'), (14,'ML Mountain Frame'), (15,'ML Mountain Frame-W'),
+        (16,'ML Road Frame'),(17,'ML Road Frame-W'), (18,'Mountain Bike Socks'),
+        (19,'Mountain-100'), (20,'Mountain-200'), (21,'Mountain-300'),
+        (22,'Mountain-400-W'), (23,'Mountain-500'), (24,'Racing Socks'),
+        (25,'Road-150'), (26,'Road-250'), (27,'Road-350-W'),
+        (28,'Road-450'), (29,'Road-550-W'), (30,'Road-650')) 
+        list (ProductModelID,ProductModelName)
+) as pList on pList.ProductModelID = p.ProductModelID
+
+select * from Product
+where ProductModelID = 36
