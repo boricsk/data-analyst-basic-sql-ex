@@ -110,3 +110,42 @@ select
 from sales.salesorderheader as sh
 GROUP BY sh.customerid
 ORDER BY 1
+
+/*
+8. From the following table write a query in SQL to find the average and the sum of 
+the subtotal for every customer. Return customerid, average and sum of the subtotal. 
+Grouped the result on customerid and salespersonid. Sort the result on customerid 
+column in descending order.
+
+Sample table: sales.salesorderheader
+*/
+
+select *
+from sales.salesorderheader as sls
+
+select 
+    sls.customerid,
+    sls.salespersonid,
+    avg (sls.subtotal) as avg_subtotal,
+    sum (sls.subtotal) as sum_subtotal
+from sales.salesorderheader as sls
+GROUP BY sls.customerid, sls.salespersonid
+ORDER BY 1 DESC
+
+/*
+9. From the following table write a query in SQL to retrieve total quantity of each productid 
+which are in shelf of 'A' or 'C' or 'H'. Filter the results for sum quantity is more than 500. 
+Return productid and sum of the quantity. Sort the results according to the productid in 
+ascending order.
+
+Sample table: production.productinventory
+*/
+
+select 
+    pi.productid,
+    sum(pi.quantity) as total_quantity
+from production.productinventory as pi
+WHERE pi.shelf in ('A', 'C', 'H')
+GROUP BY pi.productid
+HAVING sum(pi.quantity) > 500
+ORDER BY 1 
