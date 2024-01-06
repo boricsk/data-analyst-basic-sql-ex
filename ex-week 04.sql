@@ -373,6 +373,7 @@ select
     isnull(pList.ProductModelName, 'Other') as ProductModellName,
     isnull(p.Products, 0) as Products
 from (
+    --előszűrés. megkeresed a productid-t az orderdetails-ben
     select ProductModelID, count(Product.ProductID) as Products from Product
     where Product.ProductID in (select OrderDetail.ProductID from OrderDetail)
     GROUP BY Product.ProductModelID
@@ -397,3 +398,45 @@ full join (
 
 select * from Product
 where ProductModelID = 36
+
+
+/*
+Mutassuk ki, hogy hány olyan termék(Product) van, amely nevében
+(Name) szerepel egy-egy adott szó egy listáról. 
+A lista a következő: 
+frame, tire, gear, lock, washer, seat, pedal, tube
+Az eredményt rendezzük név szerint növekvőbe.
+*/
+
+select w.words, count(p.ProductID) as NumberOfProduct
+from (
+    values('frame'), ('tire'), ('gear'), ('lock'), ('washer'), ('seat'), ('pedal'), ('tube')
+) as w(words)
+join Product as p on p.Name like '%'+w.words+'%'
+GROUP BY w.words
+ORDER BY 1
+
+select *
+from Product
+WHERE name like '%frame%'
+
+select 
+    c.FirstName + ' ' + c.LastName as CustomerName, 
+    case
+        when c.Country = 'AU' then 'Australian'
+        when c.Country = 'CA' then 'North-Amerika'
+        when c.Country = 'DE' then 'Europe'
+        when c.Country = 'FR' then 'Europe'
+        when c.Country = 'GB' then 'Europe'
+        when c.Country = 'US' then 'North-Amerika'
+        else 'Other'
+    END as Continent,
+    o.OrderDate as OrderDate, 
+    od.OrderQty as OrderQuantity, 
+    p.Name as ProductName, 
+    o.OrderID as OrderID
+FROM Customer as c
+Join Orders as o on c.CustomerID = o.CustomerID
+Join OrderDetail as od on o.OrderID = od.OrderID
+Join Product as p on od.ProductID = p.ProductID
+
