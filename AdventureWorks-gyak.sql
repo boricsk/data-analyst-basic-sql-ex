@@ -1,5 +1,5 @@
 --https://www.w3resource.com/sql-exercises/adventureworks/adventureworks-exercises.php
-
+--db : AdventureWorks2022
 /*
 1. From the following table write a query in SQL to retrieve all rows and columns from 
 the employee table in the Adventureworks database. Sort the result set in ascending order on jobtitle.
@@ -149,3 +149,61 @@ WHERE pi.shelf in ('A', 'C', 'H')
 GROUP BY pi.productid
 HAVING sum(pi.quantity) > 500
 ORDER BY 1 
+
+/*
+9. From the following table write a query in SQL to retrieve total quantity of each productid 
+which are in shelf of 'A' or 'C' or 'H'. Filter the results for sum quantity is more than 500. 
+Return productid and sum of the quantity. Sort the results according to the productid in ascending order. 
+
+Sample table: production.productinventory
+*/
+
+select 
+    pi.ProductID,
+    sum(pi.Quantity) as total_quantity
+
+from Production.ProductInventory as pi
+WHERE pi.Shelf in ('A','C','H')
+GROUP BY pi.ProductID
+HAVING sum(pi.Quantity) > 500
+ORDER BY 1
+
+/*
+10. From the following table write a query in SQL to find the total quentity for a group of locationid multiplied by 10. 
+Sample table: production.productinventory
+*/
+
+SELECT
+    SUM(pi.Quantity) as total_quantity
+from Production.ProductInventory as pi
+GROUP BY pi.LocationID*10
+
+/*
+11. From the following tables write a query in SQL to find the persons whose last name starts with letter 'L'. 
+Return BusinessEntityID, FirstName, LastName, and PhoneNumber. Sort the result on lastname and firstname.
+Sample table: Person.PersonPhone
+*/
+
+select 
+    p.BusinessEntityID,
+    p.FirstName,
+    p.LastName,
+    pp.PhoneNumber
+from Person.Person as p
+left join Person.PersonPhone as pp on pp.BusinessEntityID = p.BusinessEntityID
+where p.LastName like 'L%'
+ORDER BY 3, 2
+
+/*
+12. From the following table write a query in SQL to find the sum of subtotal column. Group the sum on 
+distinct salespersonid and customerid. Rolls up the results into subtotal and running total. 
+Return salespersonid, customerid and sum of subtotal column i.e. sum_subtotal.
+Sample table: sales.salesorderheader
+*/
+
+select 
+    ISNULL(sh.SalesPersonID,999) as SalesPersonID,
+    sh.customerid,
+    SUM(sh.SubTotal) as sumSubtotal
+from sales.SalesOrderHeader as sh
+GROUP by ROLLUP(sh.SalesPersonID, sh.CustomerID)
